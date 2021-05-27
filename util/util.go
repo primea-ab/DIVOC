@@ -8,6 +8,8 @@ import (
 )
 
 var ServerAddress string
+var ChunkByteSize int64 = 100
+var RootShareFolder string = "share_folder"
 
 func PostJSON(path string, v interface{}) error {
 	body, err := json.Marshal(v)

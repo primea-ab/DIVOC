@@ -18,8 +18,6 @@ var (
 	fileHashTable = make(map[string]string)
 )
 
-var serverAddress *string
-
 func StartClient() {
 	flag.StringVar(&util.ServerAddress, "server", "", "address to server")
 	flag.Parse()
@@ -48,8 +46,8 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 
-	data := make([]byte, 100)
-	count, err := file.ReadAt(data, 100*chunkIndex)
+	data := make([]byte, util.ChunkByteSize)
+	count, err := file.ReadAt(data, util.ChunkByteSize*chunkIndex)
 	if err != nil && err != io.EOF {
 		util.WriteError(w, err)
 		return
@@ -59,7 +57,7 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerContentOfFolder() {
-	file, err := os.Open("share_folder")
+	file, err := os.Open(util.RootShareFolder)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -70,13 +68,13 @@ func registerContentOfFolder() {
 
 	fileInfos, _ := file.Readdir(0)
 	for _, fileInfo := range fileInfos {
-		hash := getHashForFile("share_folder/" + fileInfo.Name())
+		hash := getHashForFile(util.RootShareFolder + "/" + fileInfo.Name())
 		metadataArray = append(metadataArray, models.File{
 			Name: fileInfo.Name(),
 			Hash: hash,
 			Size: fileInfo.Size(),
 		})
-		fileHashTable[hash] = "share_folder/" + fileInfo.Name()
+		fileHashTable[hash] = util.RootShareFolder + "/" + fileInfo.Name()
 	}
 
 	var request = models.RegisterRequest{
