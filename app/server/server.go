@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strings"
@@ -23,7 +22,7 @@ func StartServer() {
 
 func register(w http.ResponseWriter, r *http.Request) {
 	var registerRequest models.RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&registerRequest); err != nil {
+	if err := util.ReadJSON(r, &registerRequest); err != nil {
 		util.WriteError(w, err)
 		return
 	}
@@ -46,7 +45,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 func search(w http.ResponseWriter, r *http.Request) {
 	var searchRequest models.SearchRequest
-	if err := json.NewDecoder(r.Body).Decode(&searchRequest); err != nil {
+	if err := util.ReadJSON(r, &searchRequest); err != nil {
 		util.WriteError(w, err)
 		return
 	}
@@ -72,7 +71,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	json.NewEncoder(w).Encode(searchResponse)
+	util.WriteJSON(w, searchResponse)
 }
 
 func keys(m map[string]struct{}) []string {
