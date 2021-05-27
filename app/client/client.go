@@ -2,7 +2,6 @@ package client
 
 import (
 	"crypto/sha256"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -20,9 +19,6 @@ var (
 )
 
 func StartClient() {
-	flag.StringVar(&util.ServerAddress, "server", "", "address to server")
-	flag.Parse()
-
 	registerContentOfFolder()
 
 	http.HandleFunc("/download", downloadHandler)
