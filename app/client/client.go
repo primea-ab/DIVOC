@@ -5,11 +5,13 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 
 	"divoc.primea.se/models"
+	"divoc.primea.se/util"
 )
 
 func StartClient() {
@@ -22,7 +24,23 @@ func StartClient() {
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World")
+	var chunkIndex int64 = 0
+
+	file, err := os.Open("share_folder/file1.txt")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer file.Close()
+
+	data := make([]byte, 100)
+	count, err := file.ReadAt(data, 100*chunkIndex)
+	if err != nil && err != io.EOF {
+		util.WriteError(w, err)
+		return
+	}
+
+	util.WriteBytes(w, data[:count])
 }
 
 func registerContentOfFolder() {
