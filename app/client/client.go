@@ -33,18 +33,22 @@ func registerContentOfFolder() {
 
 	defer file.Close()
 
-	var metadataArray = []*models.File{}
+	var metadataArray = []models.File{}
 
 	fileInfos, _ := file.Readdir(0)
 	for _, fileInfo := range fileInfos {
-		metadataArray = append(metadataArray, &models.File{
+		metadataArray = append(metadataArray, models.File{
 			Name: fileInfo.Name(),
 			Hash: getHashForFile("share_folder/" + fileInfo.Name()),
 			Size: fileInfo.Size(),
 		})
 	}
 
-	body, err := json.Marshal(metadataArray)
+	var request = models.RegisterRequest{
+		Files: metadataArray,
+	}
+
+	body, err := json.Marshal(request)
 	if err != nil {
 		fmt.Println(err)
 	}
