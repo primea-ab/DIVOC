@@ -42,7 +42,7 @@ func (a *FileFetcher) Download(filename string) error {
 	go a.startWriteWorker(dataChan, file, &wg, a.shardLen)
 
 	for i = 0; i < a.numWorkers; i += 1 {
-		go a.startFetchWorker(dataChan, shardChan, &meta)
+		go a.startFetchWorker(dataChan, shardChan, &meta, i)
 	}
 
 	wg.Wait()
