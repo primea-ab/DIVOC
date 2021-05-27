@@ -44,12 +44,6 @@ func register(w http.ResponseWriter, r *http.Request) {
 }
 
 func search(w http.ResponseWriter, r *http.Request) {
-	var searchRequest models.SearchRequest
-	if err := util.ReadJSON(r, &searchRequest); err != nil {
-		util.WriteError(w, err)
-		return
-	}
-
 	searchResponse := models.SearchResponse{
 		Results: make([]models.ResultFile, 0),
 	}
@@ -58,7 +52,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 		names := keys(sharedFile.Names)
 
 		for _, name := range names {
-			if strings.Contains(strings.ToLower(name), strings.ToLower(searchRequest.Query)) {
+			if strings.Contains(strings.ToLower(name), strings.ToLower(util.QueryParam(r, "query"))) {
 				searchResponse.Results = append(searchResponse.Results, models.ResultFile{
 					Hash:    hash,
 					Names:   names,

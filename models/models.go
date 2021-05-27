@@ -16,10 +16,6 @@ type SharedFile struct {
 	Size    int64
 }
 
-type SearchRequest struct {
-	Query string
-}
-
 type SearchResponse struct {
 	Results []ResultFile
 }
