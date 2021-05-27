@@ -11,6 +11,19 @@ var ServerAddress string
 var ChunkByteSize int64 = 100
 var RootShareFolder string = "share_folder"
 
+func GetJSON(url string, v interface{}) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("got non-200 status code: %d", resp.StatusCode)
+	}
+
+	return json.NewDecoder(resp.Body).Decode(v)
+}
+
 func PostJSON(path string, v interface{}) error {
 	body, err := json.Marshal(v)
 	if err != nil {

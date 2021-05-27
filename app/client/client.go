@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"divoc.primea.se/models"
 	"divoc.primea.se/util"
@@ -26,7 +27,25 @@ func StartClient() {
 
 	http.HandleFunc("/download", downloadHandler)
 
-	log.Fatal(http.ListenAndServe(":3001", nil))
+	go func() {
+		log.Fatal(http.ListenAndServe(":3001", nil))
+	}()
+
+	for {
+		fmt.Print("Query: ")
+		var query string
+		fmt.Scanln(&query)
+		var searchResponse models.SearchResponse
+		if err := util.GetJSON(util.ServerAddress+"/search?query="+query, &searchResponse); err != nil {
+			log.Fatal(err)
+		}
+		for i, result := range searchResponse.Results {
+			fmt.Printf("%d: %d %d [%s]", i, len(result.Clients), result.Size, strings.Join(result.Names, ", "))
+		}
+		fmt.Print("File index: ")
+		var fileIndex string
+		fmt.Scanln(&fileIndex)
+	}
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
