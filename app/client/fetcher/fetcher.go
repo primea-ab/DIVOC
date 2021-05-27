@@ -10,10 +10,8 @@ import (
 
 type FileFetcher struct {
 	client     Client
-	filename   string
-	hash       string
-	shardLen   int64
 	numWorkers int64
+	shardLen   int64
 }
 
 func handleError(err error) {
@@ -22,15 +20,14 @@ func handleError(err error) {
 	}
 }
 
-func (a *FileFetcher) Download() error {
-	data, err := a.client.GetFileMetaData(a.filename)
+func (a *FileFetcher) Download(filename string) error {
+	meta, err := a.client.GetFileMetaData(filename)
 	handleError(err)
-
-	file, err := a.getFile(data.Size)
+	file, err := a.getFile(meta.Size, filename)
 	handleError(err)
 	defer file.Close()
 
-	numShards := int64(math.Ceil(float64(data.Size) / float64(a.shardLen)))
+	numShards := int64(math.Ceil(float64(meta.Size) / float64(a.shardLen)))
 
 	shardChan := make(chan int64, numShards)
 	dataChan := make(chan partialResult, a.numWorkers)
@@ -42,10 +39,10 @@ func (a *FileFetcher) Download() error {
 		shardChan <- i
 	}
 
-	go a.startWriteWorker(dataChan, file, &wg)
+	go a.startWriteWorker(dataChan, file, &wg, a.shardLen)
 
 	for i = 0; i < a.numWorkers; i += 1 {
-		go a.startFetchWorker(dataChan, shardChan)
+		go a.startFetchWorker(dataChan, shardChan, &meta)
 	}
 
 	wg.Wait()
@@ -53,10 +50,10 @@ func (a *FileFetcher) Download() error {
 	return nil
 }
 
-func (a *FileFetcher) getFile(numBytes int) (*os.File, error) {
-	file, err := os.Open(a.filename)
+func (a *FileFetcher) getFile(numBytes int, filename string) (*os.File, error) {
+	file, err := os.Open(filename)
 	if err != nil {
-		return a.createEmpty(numBytes)
+		return a.createEmpty(numBytes, filename)
 	}
 
 	info, _ := file.Stat()
@@ -64,11 +61,11 @@ func (a *FileFetcher) getFile(numBytes int) (*os.File, error) {
 		return file, nil
 	}
 
-	return a.createEmpty(numBytes)
+	return a.createEmpty(numBytes, filename)
 }
 
-func (a *FileFetcher) createEmpty(numBytes int) (*os.File, error) {
-	file, err := os.Create(a.filename)
+func (a *FileFetcher) createEmpty(numBytes int, filename string) (*os.File, error) {
+	file, err := os.Create(filename)
 	handleError(err)
 	bytes := make([]byte, numBytes)
 	n, err := file.Write(bytes)
@@ -81,6 +78,6 @@ func (a *FileFetcher) createEmpty(numBytes int) (*os.File, error) {
 	return file, nil
 }
 
-func NewFileFetcher(client Client, filename string) *FileFetcher {
-	return &FileFetcher{client: client, filename: filename}
+func NewFileFetcher(client Client, numWorkers int64) *FileFetcher {
+	return &FileFetcher{client: client, numWorkers: numWorkers, shardLen: 100}
 }
