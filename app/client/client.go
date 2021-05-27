@@ -9,9 +9,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"divoc.primea.se/models"
 	"divoc.primea.se/util"
+)
+
+var (
+	fileHashTable = make(map[string]string)
 )
 
 func StartClient() {
@@ -24,11 +29,18 @@ func StartClient() {
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	var chunkIndex int64 = 0
+	chunkIndex, err := strconv.ParseInt(util.QueryParam(r, "chunk"), 0, 64)
+	hash := util.QueryParam(r, "hash")
 
-	file, err := os.Open("share_folder/file1.txt")
 	if err != nil {
-		fmt.Println(err)
+		util.WriteError(w, err)
+		return
+	}
+
+	file, err := os.Open(fileHashTable[hash])
+	if err != nil {
+		util.WriteError(w, err)
+		return
 	}
 
 	defer file.Close()
@@ -55,11 +67,13 @@ func registerContentOfFolder() {
 
 	fileInfos, _ := file.Readdir(0)
 	for _, fileInfo := range fileInfos {
+		hash := getHashForFile("share_folder/" + fileInfo.Name())
 		metadataArray = append(metadataArray, models.File{
 			Name: fileInfo.Name(),
-			Hash: getHashForFile("share_folder/" + fileInfo.Name()),
+			Hash: hash,
 			Size: fileInfo.Size(),
 		})
+		fileHashTable[hash] = "share_folder/" + fileInfo.Name()
 	}
 
 	var request = models.RegisterRequest{
