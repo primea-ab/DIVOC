@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"divoc.primea.se/app/client/fetcher"
 	"divoc.primea.se/models"
 	"divoc.primea.se/util"
 )
@@ -28,7 +29,7 @@ func StartClient() {
 	}()
 
 	for {
-		fmt.Print("Query: ")
+		fmt.Print("\nSearch: ")
 		var query string
 		fmt.Scanln(&query)
 		var searchResponse models.SearchResponse
@@ -36,11 +37,17 @@ func StartClient() {
 			log.Fatal(err)
 		}
 		for i, result := range searchResponse.Results {
-			fmt.Printf("%d: %d %d [%s]", i, len(result.Clients), result.Size, strings.Join(result.Names, ", "))
+			fmt.Printf("%d: %d %d [%s]\n", i, len(result.Clients), result.Size, strings.Join(result.Names, ", "))
 		}
-		fmt.Print("File index: ")
+		fmt.Print("Download file: ")
 		var fileIndex string
 		fmt.Scanln(&fileIndex)
+		fileIndexAsInt, err := strconv.ParseInt(fileIndex, 10, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fetcher := fetcher.NewFileFetcher(fetcher.NewShardClient(), 4, &searchResponse.Results[fileIndexAsInt])
+		fetcher.Download()
 	}
 }
 

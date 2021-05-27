@@ -39,7 +39,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 		}
 
 		sharedFile.Names[file.Name] = struct{}{}
-		sharedFile.Clients = append(sharedFile.Clients, r.RemoteAddr)
+		parts := strings.Split(r.RemoteAddr, ":")
+		sharedFile.Clients = append(sharedFile.Clients, parts[0])
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -22,6 +23,21 @@ func GetJSON(url string, v interface{}) error {
 	}
 
 	return json.NewDecoder(resp.Body).Decode(v)
+}
+
+func GetBytes(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	if resp.StatusCode != 200 {
+		return []byte{}, fmt.Errorf("got non-200 status code: %d", resp.StatusCode)
+	}
+
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
 }
 
 func PostJSON(path string, v interface{}) error {
