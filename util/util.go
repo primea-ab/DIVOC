@@ -28,3 +28,7 @@ func WriteError(w http.ResponseWriter, err error) {
 		"message": err.Error(),
 	})
 }
+
+func QueryParam(r *http.Request, key string) string {
+	return r.URL.Query().Get(key)
+}
