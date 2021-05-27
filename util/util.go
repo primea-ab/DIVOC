@@ -1,9 +1,31 @@
 package util
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
+
+var ServerAddress string
+
+func PostJSON(path string, v interface{}) error {
+	body, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(ServerAddress+path, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("got non-200 status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
 
 func ReadJSON(r *http.Request, v interface{}) error {
 	return json.NewDecoder(r.Body).Decode(v)
@@ -24,7 +46,7 @@ func WriteBytes(w http.ResponseWriter, bytes []byte) {
 func WriteError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 
-	json.NewEncoder(w).Encode(map[string]string{
+	WriteJSON(w, map[string]string{
 		"message": err.Error(),
 	})
 }

@@ -17,7 +17,7 @@ func StartServer() {
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/search", search)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":3000", nil))
 }
 
 func register(w http.ResponseWriter, r *http.Request) {

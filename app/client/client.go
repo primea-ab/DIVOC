@@ -1,9 +1,8 @@
 package client
 
 import (
-	"bytes"
 	"crypto/sha256"
-	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -19,12 +18,16 @@ var (
 	fileHashTable = make(map[string]string)
 )
 
+var serverAddress *string
+
 func StartClient() {
+	flag.StringVar(&util.ServerAddress, "server", "", "address to server")
+	flag.Parse()
+
 	registerContentOfFolder()
 
 	http.HandleFunc("/download", downloadHandler)
 
-	fmt.Println("Server listens on port :3001")
 	log.Fatal(http.ListenAndServe(":3001", nil))
 }
 
@@ -80,11 +83,7 @@ func registerContentOfFolder() {
 		Files: metadataArray,
 	}
 
-	body, err := json.Marshal(request)
-	if err != nil {
-		fmt.Println(err)
-	}
-	http.Post("http://192.168.1.235:8080/register", "application/json", bytes.NewBuffer(body))
+	util.PostJSON("/register", request)
 }
 
 func getHashForFile(filepath string) string {
