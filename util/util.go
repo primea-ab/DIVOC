@@ -15,6 +15,12 @@ func WriteJSON(w http.ResponseWriter, v interface{}) {
 	json.NewEncoder(w).Encode(v)
 }
 
+func WriteBytes(w http.ResponseWriter, bytes []byte) {
+	w.Header().Add("Content-Type", "application/octet-stream")
+
+	w.Write(bytes)
+}
+
 func WriteError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 
