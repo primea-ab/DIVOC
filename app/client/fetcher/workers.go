@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sync"
-
-	"divoc.primea.se/models"
 )
 
 type partialResult struct {
@@ -13,10 +11,10 @@ type partialResult struct {
 	id      int64
 }
 
-func (a *FileFetcher) startFetchWorker(dataChan chan<- partialResult, shardIdChan <-chan int64, meta *models.FileMeta, workerId int) {
+func (a *FileFetcher) startFetchWorker(dataChan chan<- partialResult, shardIdChan <-chan int64, workerId int64) {
 	for id := range shardIdChan {
 		fmt.Printf("Fetch shard %v, from worker: %v\n", id, workerId)
-		res, err := a.client.GetShard(meta.Hash, id)
+		res, err := a.client.GetShard(id, *a.meta)
 		handleError(err)
 		dataChan <- partialResult{id: id, payload: res}
 	}

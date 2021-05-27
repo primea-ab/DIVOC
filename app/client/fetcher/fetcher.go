@@ -6,12 +6,15 @@ import (
 	"math"
 	"os"
 	"sync"
+
+	"divoc.primea.se/models"
 )
 
 type FileFetcher struct {
 	client     Client
 	numWorkers int64
 	shardLen   int64
+	meta       *models.ResultFile
 }
 
 func handleError(err error) {
@@ -20,14 +23,12 @@ func handleError(err error) {
 	}
 }
 
-func (a *FileFetcher) Download(filename string) error {
-	meta, err := a.client.GetFileMetaData(filename)
-	handleError(err)
-	file, err := a.getFile(meta.Size, filename)
+func (a *FileFetcher) Download() error {
+	file, err := a.getFile(int(a.meta.Size), a.meta.Names[0])
 	handleError(err)
 	defer file.Close()
 
-	numShards := int64(math.Ceil(float64(meta.Size) / float64(a.shardLen)))
+	numShards := int64(math.Ceil(float64(a.meta.Size) / float64(a.shardLen)))
 
 	shardChan := make(chan int64, numShards)
 	dataChan := make(chan partialResult, a.numWorkers)
@@ -42,7 +43,7 @@ func (a *FileFetcher) Download(filename string) error {
 	go a.startWriteWorker(dataChan, file, &wg, a.shardLen)
 
 	for i = 0; i < a.numWorkers; i += 1 {
-		go a.startFetchWorker(dataChan, shardChan, &meta, i)
+		go a.startFetchWorker(dataChan, shardChan, i)
 	}
 
 	wg.Wait()
@@ -70,6 +71,7 @@ func (a *FileFetcher) createEmpty(numBytes int, filename string) (*os.File, erro
 	bytes := make([]byte, numBytes)
 	n, err := file.Write(bytes)
 	handleError(err)
+
 	if n != numBytes {
 		file.Close()
 		return nil, errors.New("bytes written and deisred size do not match")
@@ -78,6 +80,6 @@ func (a *FileFetcher) createEmpty(numBytes int, filename string) (*os.File, erro
 	return file, nil
 }
 
-func NewFileFetcher(client Client, numWorkers int64) *FileFetcher {
-	return &FileFetcher{client: client, numWorkers: numWorkers, shardLen: 100}
+func NewFileFetcher(client Client, numWorkers int64, metaData *models.ResultFile) *FileFetcher {
+	return &FileFetcher{client: client, numWorkers: numWorkers, shardLen: 100, meta: metaData}
 }
