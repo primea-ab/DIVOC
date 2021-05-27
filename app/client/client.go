@@ -19,8 +19,8 @@ func StartClient() {
 
 	http.HandleFunc("/download", downloadHandler)
 
-	fmt.Println("Server listens on port :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Server listens on port :3001")
+	log.Fatal(http.ListenAndServe(":3001", nil))
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
