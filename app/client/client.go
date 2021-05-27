@@ -25,7 +25,7 @@ func StartClient() {
 	flag.StringVar(&util.ServerAddress, "server", "", "address to server")
 	flag.Parse()
 
-	//registerContentOfFolder()
+	registerContentOfFolder()
 
 	http.HandleFunc("/download", downloadHandler)
 
