@@ -7,13 +7,13 @@ type RegisterRequest struct {
 type File struct {
 	Hash string
 	Name string
-	Size int
+	Size int64
 }
 
 type SharedFile struct {
 	Names   map[string]struct{}
 	Clients []string
-	Size    int
+	Size    int64
 }
 
 type SearchRequest struct {
@@ -28,5 +28,5 @@ type ResultFile struct {
 	Hash    string
 	Names   []string
 	Clients []string
-	Size    int
+	Size    int64
 }
