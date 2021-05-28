@@ -76,7 +76,7 @@ function getProgress() {
                 if (status['Progress'] === 1) {
                     statusDiv.style.background = '#03b503';
                 } else if (status['Progress']) {
-                    statusDiv.style.background = `linear-gradient(to right, #03e303 ${status['Progress'] * 100}%, white ${status['Progress'] * 100}%)`;
+                    statusDiv.style.background = `linear-gradient(to right, #03e303 ${status['Progress'] * 100}%, transparent ${status['Progress'] * 100}%)`;
                 }
 
                 statusDiv.innerText = status['Name'];        
