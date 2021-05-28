@@ -105,3 +105,27 @@ function searchOnEnter(e) {
         search()
     }
 }
+
+let r = 250;
+let g = 50;
+let b = 50;
+
+function start() {
+    setInterval(changeColor, 25);
+}
+
+function changeColor() {
+    rFactor = r > 220 ? 0.7 : (r < 25 ? 0.3 : 0.5)
+    gFactor = g > 220 ? 0.7 : (g < 25 ? 0.3 : 0.5)
+    bFactor = b > 220 ? 0.7 : (b < 25 ? 0.3 : 0.5)
+
+    const diffR = Math.round((Math.random() - rFactor) * 20);
+    const diffG = Math.round((Math.random() - gFactor) * 20);
+    const diffB = Math.round((Math.random() - bFactor) * 20);
+
+    r = Math.min(Math.max(0, r + diffR), 255)
+    g = Math.min(Math.max(0, g + diffG), 255)
+    b = Math.min(Math.max(0, b + diffB), 255)
+
+    document.getElementById("header").style.color = `rgb(${r}, ${g}, ${b})`;
+}
