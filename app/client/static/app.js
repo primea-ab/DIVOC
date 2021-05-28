@@ -49,6 +49,22 @@ function startDownload(i) {
     makeRequest("/start-download", searchResults[i], null);
 }
 
+function getProgress() {
+    makeRequest("/search?query=" + document.getElementById("query").value, null, function(response) {
+        document.getElementById("status").replaceChildren(...response.map((status, i) => {
+            let statusDiv = document.createElement("div");
+    
+            statusDiv.style.background = `linear-gradient(to right, #03e303 ${status['Progress'] * 100}%, white ${status['Progress'] * 100}%)`;
+            statusDiv.innerText = status['Name'];
+    
+            return statusDiv;
+        }));
+    });
+}
+
+setInterval(getProgress, 5000);
+getProgress();
+
 function nicerSize(size) {
     if (size > 1000 ** 3) {
         return (size / (1000 ** 3)) + ' GB';
