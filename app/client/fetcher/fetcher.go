@@ -1,12 +1,14 @@
 package fetcher
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"sync"
 
 	"divoc.primea.se/app/client/shardclient"
 	"divoc.primea.se/models"
+	"divoc.primea.se/util"
 )
 
 type FileFetcher struct {
@@ -23,7 +25,8 @@ func handleError(err error) {
 }
 
 func (a *FileFetcher) Download() error {
-	file, err := a.getFile(int(a.meta.Size), a.meta.Names[0])
+	filePath := fmt.Sprintf("./%s/%s", util.RootShareFolder, a.meta.Names[0])
+	file, err := a.getFile(int(a.meta.Size), filePath)
 	handleError(err)
 	defer file.Close()
 
