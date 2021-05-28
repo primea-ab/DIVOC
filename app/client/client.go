@@ -24,7 +24,9 @@ var (
 
 func StartClient() {
 	http.HandleFunc("/alive", alive)
-	http.HandleFunc("/download", downloadHandler)
+	http.HandleFunc("/download", download)
+
+	http.Handle("/", http.FileServer(http.Dir("app/client/static")))
 
 	go func() {
 		log.Fatal(http.ListenAndServe(":3001", nil))
@@ -73,7 +75,7 @@ func ensureServerConnection() {
 	registerContentOfFolder()
 }
 
-func downloadHandler(w http.ResponseWriter, r *http.Request) {
+func download(w http.ResponseWriter, r *http.Request) {
 	chunkIndex, err := strconv.ParseInt(util.QueryParam(r, "chunk"), 0, 64)
 	hash := util.QueryParam(r, "hash")
 
