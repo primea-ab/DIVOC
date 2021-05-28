@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"divoc.primea.se/app/client/fetcher"
@@ -25,6 +24,8 @@ var (
 func StartClient() {
 	http.HandleFunc("/alive", alive)
 	http.HandleFunc("/download", download)
+	http.HandleFunc("/search", search)
+	http.HandleFunc("/start-download", startDownload)
 
 	http.Handle("/", http.FileServer(http.Dir("app/client/static")))
 
@@ -38,30 +39,26 @@ func StartClient() {
 	registerContentOfFolder()
 
 	for {
-		fmt.Print("\nSearch: ")
-		var query string
-		fmt.Scanln(&query)
-
-		var searchResponse models.SearchResponse
-		if err := util.GetJSON(util.ServerAddress+"/search?query="+query, &searchResponse); err != nil {
-			log.
-				Fatal(err)
-		}
-
-		for i, result := range searchResponse.Results {
-			fmt.Printf("%d: %d %d [%s]\n", i, len(result.Clients), result.Size, strings.Join(result.Names, ", "))
-		}
-
-		fmt.Print("Download file: ")
-		var fileIndex string
-		fmt.Scanln(&fileIndex)
-		fileIndexAsInt, err := strconv.ParseInt(fileIndex, 10, 64)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-		fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &searchResponse.Results[fileIndexAsInt]).Download()
 	}
+}
+
+func startDownload(w http.ResponseWriter, r *http.Request) {
+	var resultFile models.ResultFile
+	if err := util.ReadJSON(r, &resultFile); err != nil {
+		util.WriteError(w, err)
+		return
+	}
+
+	fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile).Download()
+}
+
+func search(w http.ResponseWriter, r *http.Request) {
+	var searchResponse models.SearchResponse
+	if err := util.GetJSON(util.ServerAddress+"/search?query="+util.QueryParam(r, "query"), &searchResponse); err != nil {
+		log.Fatal(err)
+	}
+
+	util.WriteJSON(w, searchResponse)
 }
 
 func alive(w http.ResponseWriter, r *http.Request) {
