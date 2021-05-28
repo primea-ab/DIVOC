@@ -21,6 +21,8 @@ function makeRequest(url, body, callback) {
 let searchResults = [];
 
 function search() {
+    document.getElementById("music").play();
+
     makeRequest("/search?query=" + document.getElementById("query").value, null, function(response) {        
         searchResults = response["Results"]
             .sort((a, b) => stringSort(a.Names[0], b.Names[0]))
