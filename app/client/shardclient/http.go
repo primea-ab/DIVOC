@@ -26,7 +26,6 @@ func (s *httpClient) GetShard(id int64, metaData models.ResultFile) ([]byte, err
 		url := fmt.Sprintf("http://%s:3001/download?chunk=%d&hash=%s", seeder, id, metaData.Hash)
 		fmt.Printf("Fetch data from client; %s\n", url)
 		res, err := util.GetBytes(url)
-
 		if err != nil && retriesLeft < 1 {
 			return nil, err
 		}
