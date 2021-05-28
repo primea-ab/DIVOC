@@ -19,6 +19,7 @@ import (
 var (
 	fileHashTable = make(map[string]string)
 	aliveTimer    *time.Timer
+	progressMap   = make(map[string]float64)
 )
 
 func StartClient() {
@@ -26,6 +27,7 @@ func StartClient() {
 	http.HandleFunc("/download", download)
 	http.HandleFunc("/search", search)
 	http.HandleFunc("/start-download", startDownload)
+	http.HandleFunc("/progress", progressHandler)
 
 	http.Handle("/", http.FileServer(http.Dir("app/client/static")))
 
@@ -49,7 +51,12 @@ func startDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile).Download()
+	var progressChannel = make(chan float64)
+	go fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile, progressChannel).Download()
+
+	for data := range progressChannel {
+		progressMap[resultFile.Names[0]] = data
+	}
 }
 
 func search(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +104,23 @@ func download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.WriteBytes(w, data[:count])
+}
+
+type progressItem struct {
+	Name     string
+	Progress float64
+}
+
+func progressHandler(w http.ResponseWriter, r *http.Request) {
+	progressItems := make([]progressItem, 0)
+	for name, data := range progressMap {
+		progressItems = append(progressItems, progressItem{
+			Name:     name,
+			Progress: data,
+		})
+	}
+
+	util.WriteJSON(w, progressItems)
 }
 
 func registerContentOfFolder() {
