@@ -52,7 +52,7 @@ func startDownload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var progressChannel = make(chan float64)
-	go fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile, progressChannel).Download()
+	go fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile, &progressChannel).Download()
 
 	for data := range progressChannel {
 		progressMap[resultFile.Names[0]] = data

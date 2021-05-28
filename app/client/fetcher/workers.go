@@ -29,8 +29,8 @@ func (a *FileFetcher) writeWorker(dataChan <-chan partialResult, file *os.File, 
 		if err != nil {
 			fmt.Printf("Failed to write dat to file: %+v\n", err)
 		}
-		wg.Done()
 		numDownloads += 1
-		a.progressChannel <- numDownloads / numShards
+		*a.progressChannel <- numDownloads / numShards
+		wg.Done()
 	}
 }
