@@ -63,8 +63,14 @@ function getProgress() {
         document.getElementById("status").replaceChildren(...response
             .sort((a, b) => stringSort(a.Name, b.Name))
             .map((status, i) => {
-                let statusDiv = document.createElement("div");        
-                statusDiv.style.background = `linear-gradient(to right, #03e303 ${status['Progress'] * 100}%, white ${status['Progress'] * 100}%)`;
+                let statusDiv = document.createElement("div"); 
+
+                if (status['Progress'] === 1) {
+                    statusDiv.style.background = '#03b503';
+                } else if (status['Progress']) {
+                    statusDiv.style.background = `linear-gradient(to right, #03e303 ${status['Progress'] * 100}%, white ${status['Progress'] * 100}%)`;
+                }
+
                 statusDiv.innerText = status['Name'];        
                 return statusDiv;
         }));
@@ -83,5 +89,11 @@ function nicerSize(size) {
         return (size / (1000 ** 1)) + ' KB';
     } else {
         return size + ' B';
+    }
+}
+
+function searchOnEnter(e) {
+    if (e.keyCode === 13) {
+        search()
     }
 }

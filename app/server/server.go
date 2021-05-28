@@ -112,7 +112,7 @@ func removeSeederFromFile(ip string) {
 	for _, fileHash := range fileHashes {
 		sharedFiles[fileHash].Clients = util.RemoveStringFromSlice(ip, sharedFiles[fileHash].Clients)
 		if len(sharedFiles[fileHash].Clients) == 0 {
-			sharedFiles[fileHash].Clients = nil
+			sharedFiles = util.RemoveKeyFromMap(fileHash, sharedFiles)
 		}
 
 		hostFiles[ip] = util.RemoveStringFromSlice(fileHash, hostFiles[ip])

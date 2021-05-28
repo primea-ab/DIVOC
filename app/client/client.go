@@ -51,7 +51,13 @@ func startDownload(w http.ResponseWriter, r *http.Request) {
 	fetcher := fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile)
 	progressMap[resultFile.Names[0]] = fetcher
 
-	fetcher.Download()
+	go func() {
+		if err := fetcher.Download(); err != nil {
+			log.Fatal(err)
+		}
+
+		registerContentOfFolder()
+	}()
 }
 
 func search(w http.ResponseWriter, r *http.Request) {

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"divoc.primea.se/models"
 )
 
 var ServerAddress string
@@ -87,13 +89,23 @@ func QueryParam(r *http.Request, key string) string {
 }
 
 func RemoveStringFromSlice(value string, array []string) []string {
-	returnArray := make([]string, len(array))
+	returnArray := make([]string, 0)
 	for _, arrayValue := range array {
 		if arrayValue != value {
 			returnArray = append(returnArray, arrayValue)
 		}
 	}
 	return returnArray
+}
+
+func RemoveKeyFromMap(key string, m map[string]*models.SharedFile) map[string]*models.SharedFile {
+	returnMap := make(map[string]*models.SharedFile, 0)
+	for k, v := range m {
+		if k != key {
+			returnMap[k] = v
+		}
+	}
+	return returnMap
 }
 
 func Keys(m map[string]struct{}) []string {

@@ -15,7 +15,7 @@
         <div class="content">
             <span class="search-field">
                 <input type="text" id="query" name="query" required
-                minlength="4" maxlength="8" size="10">
+                minlength="4" maxlength="8" size="10" onkeypress="searchOnEnter(event)">
                 <button onclick="search()">Search</button>
             </span>
             <div id="results">
