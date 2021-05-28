@@ -11,7 +11,7 @@ type partialResult struct {
 	id      int64
 }
 
-func (a *FileFetcher) startFetchWorker(dataChan chan<- partialResult, shardIdChan <-chan int64, workerId int64) {
+func (a *FileFetcher) fetchWorker(dataChan chan<- partialResult, shardIdChan <-chan int64, workerId int64) {
 	for id := range shardIdChan {
 		fmt.Printf("Fetch shard %v, from worker: %v\n", id, workerId)
 		res, err := a.client.GetShard(id, *a.meta)
@@ -20,7 +20,7 @@ func (a *FileFetcher) startFetchWorker(dataChan chan<- partialResult, shardIdCha
 	}
 }
 
-func (a *FileFetcher) startWriteWorker(dataChan <-chan partialResult, file *os.File, wg *sync.WaitGroup, shardLen int64) {
+func (a *FileFetcher) writeWorker(dataChan <-chan partialResult, file *os.File, wg *sync.WaitGroup, shardLen int64) {
 	for data := range dataChan {
 		fmt.Println("Write data to file")
 		_, err := file.WriteAt(data.payload, data.id*shardLen)

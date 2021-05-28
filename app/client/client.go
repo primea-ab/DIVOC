@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"divoc.primea.se/app/client/fetcher"
+	"divoc.primea.se/app/client/shardclient"
 	"divoc.primea.se/models"
 	"divoc.primea.se/util"
 )
@@ -46,7 +47,7 @@ func StartClient() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fetcher := fetcher.NewFileFetcher(fetcher.NewShardClient(), 4, &searchResponse.Results[fileIndexAsInt])
+		fetcher := fetcher.New(shardclient.NewHttpClient(), 4, &searchResponse.Results[fileIndexAsInt])
 		fetcher.Download()
 	}
 }
