@@ -31,6 +31,10 @@ func (s *httpClient) GetShard(id int64, metaData models.ResultFile) ([]byte, err
 			return nil, err
 		}
 		if err != nil {
+			metaData.Clients = util.RemoveStringFromSlice(seeder, metaData.Clients)
+			if len(metaData.Clients) == 0 {
+				return nil, err
+			}
 			return dataFunc(retriesLeft - 1)
 		}
 		return res, nil
