@@ -12,6 +12,8 @@ import (
 
 var (
 	sharedFiles = make(map[string]*models.SharedFile)
+	// Map with ip adresses as key and file hashes as values
+	hostFiles = make(map[string][]string)
 )
 
 func StartServer() {
@@ -58,6 +60,7 @@ func checkAlive(ip string) {
 		if _, err := http.Get(url); err != nil {
 			if wasJustDead {
 				fmt.Printf("Client with IP %s was disconnected\n", ip)
+				removeSeederFromFile(ip)
 				break
 			} else {
 				wasJustDead = true
@@ -74,7 +77,7 @@ func search(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for hash, sharedFile := range sharedFiles {
-		names := keys(sharedFile.Names)
+		names := util.Keys(sharedFile.Names)
 
 		for _, name := range names {
 			if strings.Contains(strings.ToLower(name), strings.ToLower(util.QueryParam(r, "query"))) {
@@ -93,12 +96,9 @@ func search(w http.ResponseWriter, r *http.Request) {
 	util.WriteJSON(w, searchResponse)
 }
 
-func keys(m map[string]struct{}) []string {
-	keys := make([]string, 0)
-
-	for k := range m {
-		keys = append(keys, k)
+func removeSeederFromFile(ip string) {
+	fileHashes := hostFiles[ip]
+	for _, fileHash := range fileHashes {
+		sharedFiles[fileHash].Clients = util.RemoveStringFromSlice(ip, sharedFiles[fileHash].Clients)
 	}
-
-	return keys
 }

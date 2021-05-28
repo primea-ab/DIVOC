@@ -85,3 +85,23 @@ func WriteError(w http.ResponseWriter, err error) {
 func QueryParam(r *http.Request, key string) string {
 	return r.URL.Query().Get(key)
 }
+
+func RemoveStringFromSlice(value string, array []string) []string {
+	returnArray := make([]string, len(array))
+	for _, arrayValue := range array {
+		if arrayValue != value {
+			returnArray = append(returnArray, arrayValue)
+		}
+	}
+	return returnArray
+}
+
+func Keys(m map[string]struct{}) []string {
+	keys := make([]string, 0)
+
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
