@@ -47,7 +47,7 @@ func StartClient() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fetcher := fetcher.New(shardclient.NewHttpClient(), 4, &searchResponse.Results[fileIndexAsInt])
+		fetcher := fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &searchResponse.Results[fileIndexAsInt])
 		fetcher.Download()
 	}
 }
