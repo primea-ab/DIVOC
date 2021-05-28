@@ -56,7 +56,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 		sharedFile.Clients = append(sharedFile.Clients, ip)
 	}
 
-	//go checkAlive(ip)
+	go checkAlive(ip)
 }
 
 func checkAlive(ip string) {

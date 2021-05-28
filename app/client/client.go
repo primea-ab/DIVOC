@@ -31,19 +31,14 @@ func StartClient() {
 
 	http.Handle("/", http.FileServer(http.Dir("app/client/static")))
 
-	registerContentOfFolder()
+	time.AfterFunc(time.Second, func() {
+		aliveTimer = time.NewTimer(5 * time.Second)
+		go ensureServerConnection()
 
-	//go func() {
+		registerContentOfFolder()
+	})
+
 	log.Fatal(http.ListenAndServe(":3001", nil))
-	//}()
-
-	//aliveTimer = time.NewTimer(5 * time.Second)
-	//go ensureServerConnection()
-
-	//registerContentOfFolder()
-
-	//for {
-	//}
 }
 
 func startDownload(w http.ResponseWriter, r *http.Request) {
