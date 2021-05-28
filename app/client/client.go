@@ -142,6 +142,10 @@ func registerContentOfFolder() {
 
 	fileInfos, _ := file.Readdir(0)
 	for _, fileInfo := range fileInfos {
+		if fileInfo.Name() == ".gitkeep" {
+			continue
+		}
+
 		hash := getHashForFile(util.RootShareFolder + "/" + fileInfo.Name())
 		metadataArray = append(metadataArray, models.File{
 			Name: fileInfo.Name(),
