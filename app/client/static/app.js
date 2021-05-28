@@ -9,26 +9,32 @@ function makeRequest(url, body, callback) {
 
     oReq.responseType = "json";
 
-    if (body === null) {
+    if (body) {
+        oReq.open("POST", url);
+        oReq.send(JSON.stringify(body));        
+    } else {        
         oReq.open("GET", url);
         oReq.send();
-    } else {
-        oReq.open("POST", url);
-        oReq.send(JSON.stringify(body));
     }
 }
 
 let searchResults = [];
 
 function search() {
-    makeRequest("/search?query=" + document.getElementById("query").value, null, function(response) {
-        searchResults = response["Results"];
+    makeRequest("/search?query=" + document.getElementById("query").value, null, function(response) {        
+        searchResults = response["Results"]
+        .sort((a, b) => stringSort(a.Names[0], b.Names[0]))
+        .map(res => ({...res, isHeader: false}));
 
+        searchResults = [{isHeader: true}, ...searchResults]
         document.getElementById("results").replaceChildren(...searchResults.map((result, i) => {
             let resultDiv = document.createElement("div");
+            if (result.isHeader) {
+                resultDiv.innerHTML = `<div class="bold">Number of Seeders</div><div class="bold">File Size</div><div class="bold">File Name</div><div></div>`;
+                return resultDiv
+            }
 
             resultDiv.innerHTML = `<div>${result['Clients'].length}</div><div>${nicerSize(result['Size'])}</div><div>${result['Names'][0]}</div>`;
-
             let downloadButton = document.createElement("button");
             downloadButton.innerText = 'Download';
             downloadButton.onclick = function() {
@@ -38,11 +44,14 @@ function search() {
             let downloadButtonContainer = document.createElement("div");
             downloadButtonContainer.appendChild(downloadButton);
 
-            resultDiv.appendChild(downloadButtonContainer);
-
+            resultDiv.appendChild(downloadButtonContainer);    
             return resultDiv;
         }));
     });
+}
+
+function stringSort(a, b) {    
+    return a.toLowerCase() > b.toLowerCase()
 }
 
 function startDownload(i) {
@@ -51,13 +60,13 @@ function startDownload(i) {
 
 function getProgress() {
     makeRequest("/progress", null, function(response) {
-        document.getElementById("status").replaceChildren(...response.map((status, i) => {
-            let statusDiv = document.createElement("div");
-    
-            statusDiv.style.background = `linear-gradient(to right, #03e303 ${status['Progress'] * 100}%, white ${status['Progress'] * 100}%)`;
-            statusDiv.innerText = status['Name'];
-    
-            return statusDiv;
+        document.getElementById("status").replaceChildren(...response
+            .sort((a, b) => stringSort(a.Name, b.Name))
+            .map((status, i) => {
+                let statusDiv = document.createElement("div");        
+                statusDiv.style.background = `linear-gradient(to right, #03e303 ${status['Progress'] * 100}%, white ${status['Progress'] * 100}%)`;
+                statusDiv.innerText = status['Name'];        
+                return statusDiv;
         }));
     });
 }
