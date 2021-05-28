@@ -48,7 +48,7 @@ func startDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fetcher := fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile)
+	fetcher := fetcher.New(shardclient.NewHttpClient().WithRetries(3), 10, &resultFile)
 	progressMap[resultFile.Names[0]] = fetcher
 
 	go func() {
