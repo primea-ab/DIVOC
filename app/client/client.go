@@ -19,7 +19,7 @@ import (
 var (
 	fileHashTable = make(map[string]string)
 	aliveTimer    *time.Timer
-	progressMap   = make(map[string]float64)
+	progressMap   = make(map[string]*fetcher.FileFetcher)
 )
 
 func StartClient() {
@@ -31,17 +31,19 @@ func StartClient() {
 
 	http.Handle("/", http.FileServer(http.Dir("app/client/static")))
 
-	go func() {
-		log.Fatal(http.ListenAndServe(":3001", nil))
-	}()
-
-	aliveTimer = time.NewTimer(5 * time.Second)
-	go ensureServerConnection()
-
 	registerContentOfFolder()
 
-	for {
-	}
+	//go func() {
+	log.Fatal(http.ListenAndServe(":3001", nil))
+	//}()
+
+	//aliveTimer = time.NewTimer(5 * time.Second)
+	//go ensureServerConnection()
+
+	//registerContentOfFolder()
+
+	//for {
+	//}
 }
 
 func startDownload(w http.ResponseWriter, r *http.Request) {
@@ -51,12 +53,10 @@ func startDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var progressChannel = make(chan float64)
-	go fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile, &progressChannel).Download()
+	fetcher := fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &resultFile)
+	progressMap[resultFile.Names[0]] = fetcher
 
-	for data := range progressChannel {
-		progressMap[resultFile.Names[0]] = data
-	}
+	fetcher.Download()
 }
 
 func search(w http.ResponseWriter, r *http.Request) {
@@ -113,10 +113,10 @@ type progressItem struct {
 
 func progressHandler(w http.ResponseWriter, r *http.Request) {
 	progressItems := make([]progressItem, 0)
-	for name, data := range progressMap {
+	for name, fetcher := range progressMap {
 		progressItems = append(progressItems, progressItem{
 			Name:     name,
-			Progress: data,
+			Progress: fetcher.Progress,
 		})
 	}
 

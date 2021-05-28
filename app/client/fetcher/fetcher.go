@@ -12,10 +12,10 @@ import (
 )
 
 type FileFetcher struct {
-	client          shardclient.Client
-	numWorkers      int64
-	meta            *models.ResultFile
-	progressChannel *chan float64
+	client     shardclient.Client
+	numWorkers int64
+	meta       *models.ResultFile
+	Progress   float64
 }
 
 func handleError(err error) {
@@ -25,7 +25,6 @@ func handleError(err error) {
 }
 
 func (a *FileFetcher) Download() error {
-	defer close(*a.progressChannel)
 	filePath := fmt.Sprintf("./%s/%s", util.RootShareFolder, a.meta.Names[0])
 	file, err := a.getFile(int(a.meta.Size), filePath)
 	handleError(err)
@@ -54,6 +53,6 @@ func (a *FileFetcher) Download() error {
 	return nil
 }
 
-func New(client shardclient.Client, numWorkers int64, metaData *models.ResultFile, progressChannel *(chan float64)) *FileFetcher {
-	return &FileFetcher{client: client, numWorkers: numWorkers, meta: metaData, progressChannel: progressChannel}
+func New(client shardclient.Client, numWorkers int64, metaData *models.ResultFile) *FileFetcher {
+	return &FileFetcher{client: client, numWorkers: numWorkers, meta: metaData}
 }

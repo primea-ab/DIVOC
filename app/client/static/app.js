@@ -50,7 +50,7 @@ function startDownload(i) {
 }
 
 function getProgress() {
-    makeRequest("/search?query=" + document.getElementById("query").value, null, function(response) {
+    makeRequest("/progress", null, function(response) {
         document.getElementById("status").replaceChildren(...response.map((status, i) => {
             let statusDiv = document.createElement("div");
     
@@ -62,7 +62,7 @@ function getProgress() {
     });
 }
 
-setInterval(getProgress, 5000);
+setInterval(getProgress, 100);
 getProgress();
 
 function nicerSize(size) {
