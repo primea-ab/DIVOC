@@ -42,7 +42,8 @@ function search() {
             }
 
             resultDiv.innerHTML = `<div>${result['Clients'].length}</div><div>${nicerSize(result['Size'])}</div><div>${result['Names'][0]}</div>`;
-            let downloadButton = document.createElement("button");
+            let downloadButton = document.createElement("div");
+            downloadButton.className = 'button';
             downloadButton.innerText = 'Download';
             downloadButton.onclick = function() {
                 search(startDownload(i))
