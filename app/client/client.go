@@ -72,12 +72,18 @@ func search(w http.ResponseWriter, r *http.Request) {
 func alive(w http.ResponseWriter, r *http.Request) {
 	aliveTimer.Stop()
 	<-r.Context().Done()
-	aliveTimer.Reset(5 * time.Second)
+	aliveTimer.Reset(100 * time.Millisecond)
 }
 
 func ensureServerConnection() {
 	<-aliveTimer.C
-	registerContentOfFolder()
+	time.AfterFunc(time.Second*5, func() {
+		aliveTimer.Stop()
+		aliveTimer.Reset(5 * time.Second)
+		go ensureServerConnection()
+
+		registerContentOfFolder()
+	})
 }
 
 func download(w http.ResponseWriter, r *http.Request) {
