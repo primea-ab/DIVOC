@@ -33,6 +33,8 @@ func register(w http.ResponseWriter, r *http.Request) {
 	ipParts := strings.Split(r.RemoteAddr, ":")
 	ip := ipParts[0]
 
+	removeSeederFromFile(ip)
+
 	for _, file := range registerRequest.Files {
 		sharedFile, ok := sharedFiles[file.Hash]
 		if !ok {
@@ -42,6 +44,12 @@ func register(w http.ResponseWriter, r *http.Request) {
 			}
 
 			sharedFiles[file.Hash] = sharedFile
+			_, ok := hostFiles[ip]
+			if !ok {
+				hostFiles[ip] = []string{file.Hash}
+			} else {
+				hostFiles[ip] = append(hostFiles[ip], file.Hash)
+			}
 		}
 
 		sharedFile.Names[file.Name] = struct{}{}
@@ -97,8 +105,16 @@ func search(w http.ResponseWriter, r *http.Request) {
 }
 
 func removeSeederFromFile(ip string) {
-	fileHashes := hostFiles[ip]
+	fileHashes, ok := hostFiles[ip]
+	if !ok {
+		return
+	}
 	for _, fileHash := range fileHashes {
 		sharedFiles[fileHash].Clients = util.RemoveStringFromSlice(ip, sharedFiles[fileHash].Clients)
+		if len(sharedFiles[fileHash].Clients) == 0 {
+			sharedFiles[fileHash].Clients = nil
+		}
+
+		hostFiles[ip] = util.RemoveStringFromSlice(fileHash, hostFiles[ip])
 	}
 }
