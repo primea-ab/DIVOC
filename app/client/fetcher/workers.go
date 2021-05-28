@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"sync"
+
+	"divoc.primea.se/util"
 )
 
 type partialResult struct {
@@ -20,12 +22,12 @@ func (a *FileFetcher) fetchWorker(dataChan chan<- partialResult, shardIdChan <-c
 	}
 }
 
-func (a *FileFetcher) writeWorker(dataChan <-chan partialResult, file *os.File, wg *sync.WaitGroup, shardLen int64, numShards float64) {
+func (a *FileFetcher) writeWorker(dataChan <-chan partialResult, file *os.File, wg *sync.WaitGroup, numShards float64) {
 	var numDownloads float64 = 0
 
 	for data := range dataChan {
 		fmt.Println("Write data to file")
-		_, err := file.WriteAt(data.payload, data.id*shardLen)
+		_, err := file.WriteAt(data.payload, data.id*util.ChunkByteSize)
 		if err != nil {
 			fmt.Printf("Failed to write dat to file: %+v\n", err)
 		}

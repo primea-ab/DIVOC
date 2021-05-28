@@ -14,7 +14,6 @@ import (
 type FileFetcher struct {
 	client          shardclient.Client
 	numWorkers      int64
-	shardLen        int64
 	meta            *models.ResultFile
 	progressChannel *chan float64
 }
@@ -32,7 +31,7 @@ func (a *FileFetcher) Download() error {
 	handleError(err)
 	defer file.Close()
 
-	numShards := int64(math.Ceil(float64(a.meta.Size) / float64(a.shardLen)))
+	numShards := int64(math.Ceil(float64(a.meta.Size) / float64(util.ChunkByteSize)))
 
 	shardChan := make(chan int64, numShards)
 	dataChan := make(chan partialResult, a.numWorkers)
@@ -44,7 +43,7 @@ func (a *FileFetcher) Download() error {
 		shardChan <- i
 	}
 
-	go a.writeWorker(dataChan, file, &wg, a.shardLen, float64(numShards))
+	go a.writeWorker(dataChan, file, &wg, float64(numShards))
 
 	for i = 0; i < a.numWorkers; i += 1 {
 		go a.fetchWorker(dataChan, shardChan, i)
@@ -56,5 +55,5 @@ func (a *FileFetcher) Download() error {
 }
 
 func New(client shardclient.Client, numWorkers int64, metaData *models.ResultFile, progressChannel *(chan float64)) *FileFetcher {
-	return &FileFetcher{client: client, numWorkers: numWorkers, shardLen: 100, meta: metaData, progressChannel: progressChannel}
+	return &FileFetcher{client: client, numWorkers: numWorkers, meta: metaData, progressChannel: progressChannel}
 }
