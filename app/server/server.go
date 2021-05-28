@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -27,6 +28,9 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ipParts := strings.Split(r.RemoteAddr, ":")
+	ip := ipParts[0]
+
 	for _, file := range registerRequest.Files {
 		sharedFile, ok := sharedFiles[file.Hash]
 		if !ok {
@@ -39,8 +43,28 @@ func register(w http.ResponseWriter, r *http.Request) {
 		}
 
 		sharedFile.Names[file.Name] = struct{}{}
-		parts := strings.Split(r.RemoteAddr, ":")
-		sharedFile.Clients = append(sharedFile.Clients, parts[0])
+		sharedFile.Clients = append(sharedFile.Clients, ip)
+	}
+
+	go checkAlive(ip)
+}
+
+func checkAlive(ip string) {
+	url := fmt.Sprintf("http://%s:3001/alive", ip)
+
+	wasJustDead := false
+
+	for {
+		if _, err := http.Get(url); err != nil {
+			if wasJustDead {
+				fmt.Printf("Client with IP %s was disconnected\n", ip)
+				break
+			} else {
+				wasJustDead = true
+			}
+		} else {
+			wasJustDead = false
+		}
 	}
 }
 

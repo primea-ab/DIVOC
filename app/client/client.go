@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"divoc.primea.se/app/client/fetcher"
 	"divoc.primea.se/app/client/shardclient"
@@ -18,38 +19,58 @@ import (
 
 var (
 	fileHashTable = make(map[string]string)
+	aliveTimer    *time.Timer
 )
 
 func StartClient() {
-	registerContentOfFolder()
-
+	http.HandleFunc("/alive", alive)
 	http.HandleFunc("/download", downloadHandler)
 
 	go func() {
 		log.Fatal(http.ListenAndServe(":3001", nil))
 	}()
 
+	aliveTimer = time.NewTimer(5 * time.Second)
+	go ensureServerConnection()
+
+	registerContentOfFolder()
+
 	for {
 		fmt.Print("\nSearch: ")
 		var query string
 		fmt.Scanln(&query)
+
 		var searchResponse models.SearchResponse
 		if err := util.GetJSON(util.ServerAddress+"/search?query="+query, &searchResponse); err != nil {
-			log.Fatal(err)
+			log.
+				Fatal(err)
 		}
+
 		for i, result := range searchResponse.Results {
 			fmt.Printf("%d: %d %d [%s]\n", i, len(result.Clients), result.Size, strings.Join(result.Names, ", "))
 		}
+
 		fmt.Print("Download file: ")
 		var fileIndex string
 		fmt.Scanln(&fileIndex)
 		fileIndexAsInt, err := strconv.ParseInt(fileIndex, 10, 64)
+
 		if err != nil {
 			log.Fatal(err)
 		}
-		fetcher := fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &searchResponse.Results[fileIndexAsInt])
-		fetcher.Download()
+		fetcher.New(shardclient.NewHttpClient().WithRetries(3), 4, &searchResponse.Results[fileIndexAsInt]).Download()
 	}
+}
+
+func alive(w http.ResponseWriter, r *http.Request) {
+	aliveTimer.Stop()
+	<-r.Context().Done()
+	aliveTimer.Reset(5 * time.Second)
+}
+
+func ensureServerConnection() {
+	<-aliveTimer.C
+	registerContentOfFolder()
 }
 
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
@@ -104,7 +125,9 @@ func registerContentOfFolder() {
 		Files: metadataArray,
 	}
 
-	util.PostJSON("/register", request)
+	if err := util.PostJSON("/register", request); err != nil {
+		log.Fatal("register to server failed")
+	}
 }
 
 func getHashForFile(filepath string) string {
