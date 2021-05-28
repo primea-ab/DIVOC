@@ -11,7 +11,7 @@ import (
 )
 
 var ServerAddress string
-var ChunkByteSize int64 = 100
+var ChunkByteSize int64 = 1000
 var RootShareFolder string = "share_folder"
 
 func GetJSON(url string, v interface{}) error {
