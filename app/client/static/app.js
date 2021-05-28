@@ -23,12 +23,19 @@ let searchResults = [];
 function search() {
     makeRequest("/search?query=" + document.getElementById("query").value, null, function(response) {        
         searchResults = response["Results"]
-        .sort((a, b) => stringSort(a.Names[0], b.Names[0]))
-        .map(res => ({...res, isHeader: false}));
+            .sort((a, b) => stringSort(a.Names[0], b.Names[0]))
+            .map(res => ({...res, isHeader: false}));
+        
+        if (searchResults && searchResults.length !== 0) {
+            searchResults = [
+                {isHeader: true}, ...searchResults
+            ];
+        }
+        
 
-        searchResults = [{isHeader: true}, ...searchResults]
         document.getElementById("results").replaceChildren(...searchResults.map((result, i) => {
             let resultDiv = document.createElement("div");
+
             if (result.isHeader) {
                 resultDiv.innerHTML = `<div class="bold">Number of Seeders</div><div class="bold">File Size</div><div class="bold">File Name</div><div></div>`;
                 return resultDiv
